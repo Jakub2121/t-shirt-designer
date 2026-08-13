@@ -1,1031 +1,294 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreator Nadruków na Koszulki</title>
-    
-    <!-- Tailwind CSS z CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fabric.js v5 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-    
-    <!-- jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- html2canvas (do konwersji Canvas na obraz) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Impact&family=Pacifico&family=Roboto:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background-color: #0f172a;
-            color: #e2e8f0;
-            font-family: 'Roboto', sans-serif;
-        }
-        
-        /* Tailwind Custom Config */
-        .fabric-canvas {
-            border: 2px dashed #64748b;
-            background-color: #1e293b;
-            cursor: crosshair;
-        }
-        
-        .tab-button {
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .tab-button.active {
-            border-bottom-color: #3b82f6;
-            color: #3b82f6;
-        }
-        
-        .print-area-frame {
-            border: 2px dashed #ef4444;
-            position: absolute;
-            opacity: 0.7;
-        }
-        
-        .mockup-container {
-            position: relative;
-            width: 300px;
-            height: 350px;
-            margin: auto;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 8px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .tshirt {
-            position: relative;
-            width: 240px;
-            height: 280px;
-            background-color: #1f2937;
-            border-radius: 12px 12px 8px 8px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .tshirt::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 15px solid #1f2937;
-            z-index: 2;
-        }
-        
-        .tshirt.front {
-            background-color: #1f2937;
-        }
-        
-        .tshirt.back {
-            background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
-        }
-        
-        .print-area {
-            width: 200px;
-            height: 180px;
-            border: 2px dashed #ef4444;
-            border-radius: 4px;
-            opacity: 0.5;
-            position: absolute;
-            z-index: 0;
-        }
-        
-        .canvas-wrapper {
-            position: absolute;
-            width: 200px;
-            height: 180px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .color-picker {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        
-        .scroll-smooth {
-            scroll-behavior: smooth;
-        }
-        
-        /* Animacje */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .animate-slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        /* Input fields styling */
-        input[type="text"],
-        input[type="number"],
-        input[type="file"],
-        select {
-            background-color: #1e293b !important;
-            border-color: #334155 !important;
-            color: #e2e8f0 !important;
-        }
-        
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        select:focus {
-            border-color: #3b82f6 !important;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-        }
-        
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-secondary {
-            background-color: #475569;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #64748b;
-        }
-        
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-        
-        .element-item {
-            background-color: #1e293b;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border-left: 3px solid #3b82f6;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .element-item:hover {
-            background-color: #334155;
-            transform: translateX(4px);
-        }
-        
-        .element-item.selected {
-            background-color: #334155;
-            border-left-color: #10b981;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreator Nadruków - Studio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fabric.js v5 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Impact&family=Montserrat:wght@400;700&family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: 'Montserrat', sans-serif; }
+    .accent-color { color: #d0fd38; }
+    .accent-bg { background-color: #d0fd38; color: #0f172a; }
+    .accent-border { border-color: #d0fd38; }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100">
-    <div class="min-h-screen flex flex-col">
-        <!-- Header -->
-        <header class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                        👕 T-Shirt Designer
-                    </h1>
-                    <p class="text-sm text-slate-400 mt-1">Kreator nadruków na koszulki</p>
-                </div>
-                <div class="flex gap-2">
-                    <button id="downloadBtn" class="btn-primary">
-                        ⬇️ Pobierz
-                    </button>
-                </div>
-            </div>
-        </header>
+<body class="min-h-screen flex flex-col">
 
-        <!-- Main Container -->
-        <main class="flex-1 overflow-hidden">
-            <div class="max-w-7xl mx-auto h-full">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full p-4 lg:p-6">
-                    
-                    <!-- Left Panel - Narzędzia (Desktop) / Bottom (Mobile) -->
-                    <div class="lg:col-span-1 order-last lg:order-first overflow-y-auto">
-                        <div class="bg-slate-800 rounded-lg p-6 sticky top-24 lg:top-32">
-                            
-                            <!-- View Toggle Buttons -->
-                            <div class="mb-8">
-                                <p class="text-xs font-bold text-slate-400 mb-3">STRONA KOSZULKI</p>
-                                <div class="flex gap-3">
-                                    <button id="frontBtn" class="tab-button active flex-1 py-3 px-4 bg-slate-700 rounded-lg text-center font-semibold text-blue-400 border-b-2 border-blue-500">
-                                        👁️ Przód
-                                    </button>
-                                    <button id="backBtn" class="tab-button flex-1 py-3 px-4 bg-slate-700 rounded-lg text-center font-semibold text-slate-400 hover:text-slate-200">
-                                        🔄 Tył
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Tabs Navigation -->
-                            <div class="flex gap-4 mb-6 border-b border-slate-700">
-                                <button id="textTabBtn" class="tab-button active py-3 text-sm font-semibold">✏️ Tekst</button>
-                                <button id="imageTabBtn" class="tab-button py-3 text-sm font-semibold">🖼️ Grafika</button>
-                                <button id="elementsTabBtn" class="tab-button py-3 text-sm font-semibold">📋 Warstwy</button>
-                            </div>
-
-                            <!-- TEXT TAB -->
-                            <div id="textTab" class="animate-slide-in">
-                                <div class="space-y-4">
-                                    <button id="addTextBtn" class="btn-primary w-full">+ Dodaj tekst</button>
-                                    
-                                    <div id="textEditPanel" class="hidden space-y-4">
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-400 mb-2">ZAWARTOŚĆ TEKSTU</label>
-                                            <input type="text" id="textContent" placeholder="Wpisz tekst..." class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100 placeholder-slate-500">
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-400 mb-2">CZCIONKA</label>
-                                            <select id="fontFamily" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
-                                                <option value="Montserrat">Montserrat</option>
-                                                <option value="Impact">Impact</option>
-                                                <option value="Pacifico">Pacifico</option>
-                                                <option value="Roboto">Roboto</option>
-                                                <option value="Playfair Display">Playfair Display</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-400 mb-2">ROZMIAR (px)</label>
-                                                <input type="number" id="fontSize" value="32" min="10" max="200" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-400 mb-2">KOLOR</label>
-                                                <input type="color" id="textColor" value="#ffffff" class="w-full h-10 bg-slate-700 border border-slate-600 rounded cursor-pointer">
-                                            </div>
-                                        </div>
-
-                                        <div class="flex gap-2">
-                                            <button id="boldBtn" class="flex-1 py-2 px-3 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold">B</button>
-                                            <button id="italicBtn" class="flex-1 py-2 px-3 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold italic">I</button>
-                                        </div>
-
-                                        <div class="flex gap-2 pt-4 border-t border-slate-700">
-                                            <button id="deleteTextBtn" class="btn-danger flex-1">Usuń</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- IMAGE TAB -->
-                            <div id="imageTab" class="hidden animate-slide-in">
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-400 mb-3">WGRAJ OBRAZEK</label>
-                                        <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.svg" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm">
-                                        <p class="text-xs text-slate-400 mt-2">Obsługiwane: PNG, JPG, SVG</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- ELEMENTS/LAYERS TAB -->
-                            <div id="elementsTab" class="hidden animate-slide-in">
-                                <div class="space-y-2">
-                                    <p class="text-xs font-bold text-slate-400 mb-4">ELEMENTY NA KOSZULCE</p>
-                                    <div id="elementsList" class="space-y-2 max-h-96 overflow-y-auto">
-                                        <p class="text-xs text-slate-500 text-center py-4">Brak elementów</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Panel - Preview (Desktop) / Top (Mobile) -->
-                    <div class="lg:col-span-2 order-first lg:order-last flex flex-col items-center justify-center">
-                        <div class="w-full">
-                            <div class="bg-slate-800 rounded-lg p-8 flex justify-center items-center min-h-96">
-                                <div class="mockup-container">
-                                    <!-- Tshirt SVG -->
-                                    <svg class="absolute w-full h-full" viewBox="0 0 240 280" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));">
-                                        <!-- Koszulka tło -->
-                                        <defs>
-                                            <linearGradient id="tshirtGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                                <stop offset="0%" id="gradStop1" style="stop-color:#1f2937;stop-opacity:1" />
-                                                <stop offset="100%" id="gradStop2" style="stop-color:#111827;stop-opacity:1" />
-                                            </linearGradient>
-                                        </defs>
-                                        
-                                        <!-- Główne ciało -->
-                                        <path d="M 20 30 L 60 15 L 90 20 L 120 18 L 150 20 L 180 15 L 220 30 L 220 260 Q 220 270 210 270 L 30 270 Q 20 270 20 260 Z" fill="url(#tshirtGradient)" stroke="#0f172a" stroke-width="1"/>
-                                        
-                                        <!-- Lewy rękaw -->
-                                        <ellipse cx="15" cy="50" rx="20" ry="35" fill="url(#tshirtGradient)" stroke="#0f172a" stroke-width="1"/>
-                                        
-                                        <!-- Prawy rękaw -->
-                                        <ellipse cx="225" cy="50" rx="20" ry="35" fill="url(#tshirtGradient)" stroke="#0f172a" stroke-width="1"/>
-                                        
-                                        <!-- Dekoracja (blask) -->
-                                        <ellipse cx="80" cy="60" rx="30" ry="15" fill="white" opacity="0.1"/>
-                                    </svg>
-                                    
-                                    <!-- Pole zadruku -->
-                                    <div class="print-area absolute"></div>
-                                    
-                                    <!-- Canvas dla Fabric.js -->
-                                    <div class="canvas-wrapper">
-                                        <canvas id="designCanvas" width="200" height="180" class="fabric-canvas"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Info -->
-                            <div class="mt-4 text-center text-xs text-slate-400">
-                                <p>💡 Przeciągnij elementy, aby je przesunąć. Użyj uchwytów do skalowania i obracania.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+  <!-- Header -->
+  <header class="border-b border-slate-800 p-4 bg-slate-900/50 backdrop-blur flex justify-between items-center">
+    <h1 class="text-xl font-bold tracking-wider uppercase">Kreator <span class="accent-color">Nadruków</span></h1>
+    <div class="flex gap-2">
+      <button id="btn-front" onclick="switchSide('front')" class="px-4 py-2 rounded-lg font-semibold accent-bg transition-all">Przód</button>
+      <button id="btn-back" onclick="switchSide('back')" class="px-4 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all">Tył</button>
     </div>
+  </header>
 
-    <script>
-        // ============================================
-        // APLIKACJA KREATORA NADRUKÓW NA KOSZULKI
-        // ============================================
+  <!-- Main Container -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 lg:p-8 max-w-7xl mx-auto w-full">
+    
+    <!-- Left: Tool Panel (5 cols) -->
+    <section class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6 shadow-xl">
+      
+      <!-- Tekst Section -->
+      <div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Dodaj & Edytuj Tekst</h2>
+        <div class="flex gap-2 mb-3">
+          <input type="text" id="text-input" placeholder="Wpisz swój tekst..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d0fd38]">
+          <button onclick="addText()" class="accent-bg font-bold px-4 py-2 rounded-lg text-sm hover:opacity-90 transition">+ Dodaj</button>
+        </div>
         
-        /**
-         * Główna klasa aplikacji do zarządzania kreatorem koszulek
-         */
-        class TShirtDesigner {
-            constructor() {
-                // Stan aplikacji
-                this.currentSide = 'front'; // 'front' lub 'back'
-                this.canvases = {
-                    front: null,
-                    back: null
-                };
-                this.selectedElement = null;
-                this.elements = {
-                    front: [],
-                    back: []
-                };
-                
-                // DOM References
-                this.designCanvas = document.getElementById('designCanvas');
-                this.frontBtn = document.getElementById('frontBtn');
-                this.backBtn = document.getElementById('backBtn');
-                this.addTextBtn = document.getElementById('addTextBtn');
-                this.textContent = document.getElementById('textContent');
-                this.fontFamily = document.getElementById('fontFamily');
-                this.fontSize = document.getElementById('fontSize');
-                this.textColor = document.getElementById('textColor');
-                this.boldBtn = document.getElementById('boldBtn');
-                this.italicBtn = document.getElementById('italicBtn');
-                this.deleteTextBtn = document.getElementById('deleteTextBtn');
-                this.imageInput = document.getElementById('imageInput');
-                this.downloadBtn = document.getElementById('downloadBtn');
-                this.textEditPanel = document.getElementById('textEditPanel');
-                this.elementsList = document.getElementById('elementsList');
-                this.textTab = document.getElementById('textTab');
-                this.imageTab = document.getElementById('imageTab');
-                this.elementsTab = document.getElementById('elementsTab');
-                this.textTabBtn = document.getElementById('textTabBtn');
-                this.imageTabBtn = document.getElementById('imageTabBtn');
-                this.elementsTabBtn = document.getElementById('elementsTabBtn');
-                
-                this.init();
-            }
-            
-            /**
-             * Inicjalizacja aplikacji
-             */
-            init() {
-                this.setupFabric();
-                this.attachEventListeners();
-                console.log('✅ Aplikacja T-Shirt Designer zainicjalizowana');
-            }
-            
-            /**
-             * Konfiguracja Fabric.js Canvas
-             */
-            setupFabric() {
-                // Inicjalizacja Canvas dla przodu
-                this.canvases.front = new fabric.Canvas('designCanvas', {
-                    width: 200,
-                    height: 180,
-                    backgroundColor: 'transparent',
-                    selection: true,
-                    preserveObjectStacking: true
-                });
-                
-                // Klon Canvas dla tyłu
-                this.canvases.back = new fabric.Canvas(null, {
-                    width: 200,
-                    height: 180,
-                    backgroundColor: 'transparent'
-                });
-                
-                // Event listeners dla Canvas
-                this.canvases.front.on('selection:created', (e) => this.onElementSelected(e));
-                this.canvases.front.on('selection:updated', (e) => this.onElementSelected(e));
-                this.canvases.front.on('selection:cleared', () => this.onElementDeselected());
-                
-                this.canvases.back.on('selection:created', (e) => this.onElementSelected(e));
-                this.canvases.back.on('selection:updated', (e) => this.onElementSelected(e));
-                this.canvases.back.on('selection:cleared', () => this.onElementDeselected());
-            }
-            
-            /**
-             * Podłączenie event listenerów
-             */
-            attachEventListeners() {
-                // Przełączanie przód/tył
-                this.frontBtn.addEventListener('click', () => this.switchSide('front'));
-                this.backBtn.addEventListener('click', () => this.switchSide('back'));
-                
-                // Przełączanie zakładek
-                this.textTabBtn.addEventListener('click', () => this.switchTab('text'));
-                this.imageTabBtn.addEventListener('click', () => this.switchTab('image'));
-                this.elementsTabBtn.addEventListener('click', () => this.switchTab('elements'));
-                
-                // Tekst
-                this.addTextBtn.addEventListener('click', () => this.addText());
-                this.textContent.addEventListener('change', () => this.updateTextContent());
-                this.fontFamily.addEventListener('change', () => this.updateTextStyle());
-                this.fontSize.addEventListener('change', () => this.updateTextStyle());
-                this.textColor.addEventListener('change', () => this.updateTextStyle());
-                this.boldBtn.addEventListener('click', () => this.toggleBold());
-                this.italicBtn.addEventListener('click', () => this.toggleItalic());
-                this.deleteTextBtn.addEventListener('click', () => this.deleteSelectedElement());
-                
-                // Grafika
-                this.imageInput.addEventListener('change', (e) => this.handleImageUpload(e));
-                
-                // Pobieranie
-                this.downloadBtn.addEventListener('click', () => this.downloadDesign());
-            }
-            
-            /**
-             * Przełączanie między przód a tył koszulki
-             */
-            switchSide(side) {
-                this.currentSide = side;
-                
-                // Aktualizacja przycisków
-                if (side === 'front') {
-                    this.frontBtn.classList.add('active');
-                    this.backBtn.classList.remove('active');
-                    this.frontBtn.querySelector('path')?.style.fill || null;
-                } else {
-                    this.backBtn.classList.add('active');
-                    this.frontBtn.classList.remove('active');
-                }
-                
-                // Przełączenie Canvas
-                this.syncCanvasToDOM();
-                this.updateGradient();
-                this.updateElementsList();
-            }
-            
-            /**
-             * Synchronizacja Canvas z DOM
-             */
-            syncCanvasToDOM() {
-                const canvas = this.canvases[this.currentSide];
-                if (!canvas) return;
-                
-                // Usunięcie starego Canvas z DOM
-                const oldCanvas = document.getElementById('designCanvas');
-                if (oldCanvas) {
-                    oldCanvas.remove();
-                }
-                
-                // Tworzenie nowego Canvas
-                const newCanvas = document.createElement('canvas');
-                newCanvas.id = 'designCanvas';
-                newCanvas.width = 200;
-                newCanvas.height = 180;
-                newCanvas.className = 'fabric-canvas';
-                
-                // Wstawianie do DOM
-                const wrapper = document.querySelector('.canvas-wrapper');
-                wrapper.innerHTML = '';
-                wrapper.appendChild(newCanvas);
-                
-                // Re-inicjalizacja Canvas na nowym elemencie
-                this.canvases[this.currentSide] = new fabric.Canvas(newCanvas, {
-                    width: 200,
-                    height: 180,
-                    backgroundColor: 'transparent'
-                });
-                
-                // Przywrócenie elementów na Canvas
-                this.elements[this.currentSide].forEach(obj => {
-                    this.canvases[this.currentSide].add(obj);
-                });
-                
-                this.canvases[this.currentSide].renderAll();
-                
-                // Ponowne podłączenie event listenerów
-                this.canvases[this.currentSide].on('selection:created', (e) => this.onElementSelected(e));
-                this.canvases[this.currentSide].on('selection:updated', (e) => this.onElementSelected(e));
-                this.canvases[this.currentSide].on('selection:cleared', () => this.onElementDeselected());
-            }
-            
-            /**
-             * Aktualizacja gradientu koszulki w zależności od strony
-             */
-            updateGradient() {
-                const stop1 = document.getElementById('gradStop1');
-                const stop2 = document.getElementById('gradStop2');
-                
-                if (this.currentSide === 'front') {
-                    stop1.setAttribute('stop-color', '#1f2937');
-                    stop2.setAttribute('stop-color', '#111827');
-                } else {
-                    stop1.setAttribute('stop-color', '#111827');
-                    stop2.setAttribute('stop-color', '#0f172a');
-                }
-            }
-            
-            /**
-             * Przełączanie między zakładkami
-             */
-            switchTab(tab) {
-                // Ukrycie wszystkich zakładek
-                this.textTab.classList.add('hidden');
-                this.imageTab.classList.add('hidden');
-                this.elementsTab.classList.add('hidden');
-                
-                // Usunięcie klasy active z przycisków
-                this.textTabBtn.classList.remove('active');
-                this.imageTabBtn.classList.remove('active');
-                this.elementsTabBtn.classList.remove('active');
-                
-                // Pokazanie wybranej zakładki
-                if (tab === 'text') {
-                    this.textTab.classList.remove('hidden');
-                    this.textTabBtn.classList.add('active');
-                } else if (tab === 'image') {
-                    this.imageTab.classList.remove('hidden');
-                    this.imageTabBtn.classList.add('active');
-                } else if (tab === 'elements') {
-                    this.elementsTab.classList.remove('hidden');
-                    this.elementsTabBtn.classList.add('active');
-                    this.updateElementsList();
-                }
-            }
-            
-            /**
-             * Dodawanie tekstu do Canvas
-             */
-            addText() {
-                const text = new fabric.Text('Nowy tekst', {
-                    left: 50,
-                    top: 50,
-                    fontSize: 32,
-                    fontFamily: 'Montserrat',
-                    fill: '#ffffff',
-                    fontWeight: 'normal',
-                    fontStyle: 'normal'
-                });
-                
-                const canvas = this.canvases[this.currentSide];
-                canvas.add(text);
-                canvas.setActiveObject(text);
-                canvas.renderAll();
-                
-                // Dodanie do listy elementów
-                this.elements[this.currentSide].push(text);
-                this.selectedElement = text;
-                
-                // Pokazanie panelu edycji
-                this.textEditPanel.classList.remove('hidden');
-                this.updateTextFields();
-                this.updateElementsList();
-            }
-            
-            /**
-             * Obsługa wgrywania obrazu
-             */
-            handleImageUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    if (file.type === 'image/svg+xml') {
-                        // Obsługa SVG
-                        this.addSVGToCanvas(event.target.result);
-                    } else {
-                        // Obsługa PNG/JPG
-                        this.addImageToCanvas(event.target.result);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-            
-            /**
-             * Dodawanie obrazu do Canvas
-             */
-            addImageToCanvas(imageData) {
-                fabric.Image.fromURL(imageData, (img) => {
-                    // Skalowanie obrazu do pola zadruku
-                    const maxWidth = 180;
-                    const maxHeight = 160;
-                    const scale = Math.min(maxWidth / img.width, maxHeight / img.height) * 0.8;
-                    
-                    img.scale(scale);
-                    img.set({
-                        left: 100 - (img.width * scale) / 2,
-                        top: 90 - (img.height * scale) / 2
-                    });
-                    
-                    const canvas = this.canvases[this.currentSide];
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.renderAll();
-                    
-                    this.elements[this.currentSide].push(img);
-                    this.selectedElement = img;
-                    this.updateElementsList();
-                }, { crossOrigin: 'anonymous' });
-            }
-            
-            /**
-             * Dodawanie SVG do Canvas
-             */
-            addSVGToCanvas(svgData) {
-                fabric.loadSVGFromURL(svgData, (objects, options) => {
-                    if (objects.length === 0) return;
-                    
-                    const svg = fabric.util.groupSVGElements(objects, options);
-                    
-                    // Skalowanie SVG
-                    const maxWidth = 180;
-                    const maxHeight = 160;
-                    const scale = Math.min(maxWidth / svg.width, maxHeight / svg.height) * 0.8;
-                    
-                    svg.scale(scale);
-                    svg.set({
-                        left: 100 - (svg.width * scale) / 2,
-                        top: 90 - (svg.height * scale) / 2
-                    });
-                    
-                    const canvas = this.canvases[this.currentSide];
-                    canvas.add(svg);
-                    canvas.setActiveObject(svg);
-                    canvas.renderAll();
-                    
-                    this.elements[this.currentSide].push(svg);
-                    this.selectedElement = svg;
-                    this.updateElementsList();
-                }, null, { crossOrigin: 'anonymous' });
-            }
-            
-            /**
-             * Callback gdy element zostaje zaznaczony
-             */
-            onElementSelected(e) {
-                this.selectedElement = e.selected[0];
-                this.updateTextFields();
-                this.updateElementsList();
-                
-                // Pokazanie panelu edycji dla tekstu
-                if (this.selectedElement.text) {
-                    this.textEditPanel.classList.remove('hidden');
-                    this.switchTab('text');
-                }
-            }
-            
-            /**
-             * Callback gdy element zostaje odzaznaczony
-             */
-            onElementDeselected() {
-                this.selectedElement = null;
-                this.textEditPanel.classList.add('hidden');
-                this.updateElementsList();
-            }
-            
-            /**
-             * Aktualizacja pól edycji tekstu
-             */
-            updateTextFields() {
-                if (!this.selectedElement || !this.selectedElement.text) {
-                    this.textEditPanel.classList.add('hidden');
-                    return;
-                }
-                
-                this.textContent.value = this.selectedElement.text || '';
-                this.fontFamily.value = this.selectedElement.fontFamily || 'Montserrat';
-                this.fontSize.value = this.selectedElement.fontSize || 32;
-                this.textColor.value = this.rgbToHex(this.selectedElement.fill) || '#ffffff';
-                
-                // Aktualizacja stanów przycisków Bold/Italic
-                this.boldBtn.style.opacity = this.selectedElement.fontWeight === 'bold' ? '1' : '0.5';
-                this.italicBtn.style.opacity = this.selectedElement.fontStyle === 'italic' ? '1' : '0.5';
-            }
-            
-            /**
-             * Aktualizacja zawartości tekstu
-             */
-            updateTextContent() {
-                if (!this.selectedElement || !this.selectedElement.text) return;
-                
-                this.selectedElement.set({ text: this.textContent.value });
-                const canvas = this.canvases[this.currentSide];
-                canvas.renderAll();
-            }
-            
-            /**
-             * Aktualizacja stylu tekstu
-             */
-            updateTextStyle() {
-                if (!this.selectedElement || !this.selectedElement.text) return;
-                
-                this.selectedElement.set({
-                    fontFamily: this.fontFamily.value,
-                    fontSize: parseInt(this.fontSize.value),
-                    fill: this.textColor.value
-                });
-                
-                const canvas = this.canvases[this.currentSide];
-                canvas.renderAll();
-            }
-            
-            /**
-             * Przełączanie Bold
-             */
-            toggleBold() {
-                if (!this.selectedElement || !this.selectedElement.text) return;
-                
-                const isBold = this.selectedElement.fontWeight === 'bold';
-                this.selectedElement.set({ fontWeight: isBold ? 'normal' : 'bold' });
-                
-                this.boldBtn.style.opacity = isBold ? '0.5' : '1';
-                const canvas = this.canvases[this.currentSide];
-                canvas.renderAll();
-            }
-            
-            /**
-             * Przełączanie Italic
-             */
-            toggleItalic() {
-                if (!this.selectedElement || !this.selectedElement.text) return;
-                
-                const isItalic = this.selectedElement.fontStyle === 'italic';
-                this.selectedElement.set({ fontStyle: isItalic ? 'normal' : 'italic' });
-                
-                this.italicBtn.style.opacity = isItalic ? '0.5' : '1';
-                const canvas = this.canvases[this.currentSide];
-                canvas.renderAll();
-            }
-            
-            /**
-             * Usuwanie wybranego elementu
-             */
-            deleteSelectedElement() {
-                if (!this.selectedElement) return;
-                
-                const canvas = this.canvases[this.currentSide];
-                canvas.remove(this.selectedElement);
-                canvas.renderAll();
-                
-                // Usunięcie z listy elementów
-                const index = this.elements[this.currentSide].indexOf(this.selectedElement);
-                if (index > -1) {
-                    this.elements[this.currentSide].splice(index, 1);
-                }
-                
-                this.selectedElement = null;
-                this.textEditPanel.classList.add('hidden');
-                this.updateElementsList();
-            }
-            
-            /**
-             * Aktualizacja listy elementów
-             */
-            updateElementsList() {
-                const elements = this.elements[this.currentSide];
-                
-                if (elements.length === 0) {
-                    this.elementsList.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Brak elementów</p>';
-                    return;
-                }
-                
-                this.elementsList.innerHTML = '';
-                
-                elements.forEach((el, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'element-item';
-                    if (el === this.selectedElement) {
-                        div.classList.add('selected');
-                    }
-                    
-                    const type = el.text ? '✏️ Tekst' : '🖼️ Obraz';
-                    const name = el.text ? el.text.substring(0, 20) : 'Obraz';
-                    
-                    div.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm">${type}: ${name}</span>
-                            <div class="flex gap-2">
-                                <button class="text-xs bg-slate-600 hover:bg-slate-500 px-2 py-1 rounded moveUp" data-index="${index}">↑</button>
-                                <button class="text-xs bg-slate-600 hover:bg-slate-500 px-2 py-1 rounded moveDown" data-index="${index}">↓</button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    div.addEventListener('click', () => {
-                        const canvas = this.canvases[this.currentSide];
-                        canvas.setActiveObject(el);
-                        canvas.renderAll();
-                    });
-                    
-                    div.querySelector('.moveUp').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const canvas = this.canvases[this.currentSide];
-                        canvas.bringToFront(el);
-                        canvas.renderAll();
-                    });
-                    
-                    div.querySelector('.moveDown').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const canvas = this.canvases[this.currentSide];
-                        canvas.sendToBack(el);
-                        canvas.renderAll();
-                    });
-                    
-                    this.elementsList.appendChild(div);
-                });
-            }
-            
-            /**
-             * Pobieranie projektu
-             */
-            downloadDesign() {
-                const canvas = this.canvases[this.currentSide];
-                const elements = this.elements[this.currentSide];
-                
-                if (elements.length === 0) {
-                    alert('⚠️ Brak elementów do pobrania. Dodaj tekst lub grafikę.');
-                    return;
-                }
-                
-                // Sprawdzenie czy są grafiki rastrowe
-                const hasRasterImage = elements.some(el => el instanceof fabric.Image);
-                
-                if (hasRasterImage) {
-                    this.downloadAsPDF();
-                } else {
-                    this.downloadAsSVG();
-                }
-            }
-            
-            /**
-             * Pobieranie jako SVG
-             */
-            downloadAsSVG() {
-                const canvas = this.canvases[this.currentSide];
-                const svgString = canvas.toSVG();
-                
-                const blob = new Blob([svgString], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `nadruk_koszulka_${this.currentSide}.svg`;
-                link.click();
-                URL.revokeObjectURL(url);
-                
-                console.log('✅ SVG pobrane: nadruk_koszulka_' + this.currentSide + '.svg');
-            }
-            
-            /**
-             * Pobieranie jako PDF
-             */
-            downloadAsPDF() {
-                const canvas = this.canvases[this.currentSide];
-                
-                // Konwersja Canvas na obraz
-                canvas.renderAll();
-                const imageData = canvas.toDataURL('image/png');
-                
-                // Tworzenie PDF
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                
-                // Wstawienie obrazu do PDF (wysrodkowanie)
-                const imgWidth = 100;
-                const imgHeight = 90;
-                const xOffset = (210 - imgWidth) / 2;
-                const yOffset = (297 - imgHeight) / 2;
-                
-                doc.addImage(imageData, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
-                
-                // Pobieranie
-                doc.save(`nadruk_koszulka_${this.currentSide}.pdf`);
-                
-                console.log('✅ PDF pobrane: nadruk_koszulka_' + this.currentSide + '.pdf');
-            }
-            
-            /**
-             * Konwersja RGB na HEX
-             */
-            rgbToHex(rgb) {
-                if (!rgb) return '#ffffff';
-                if (rgb.startsWith('#')) return rgb;
-                
-                const result = rgb.match(/\d+/g);
-                if (!result || result.length < 3) return '#ffffff';
-                
-                const r = parseInt(result[0]).toString(16).padStart(2, '0');
-                const g = parseInt(result[1]).toString(16).padStart(2, '0');
-                const b = parseInt(result[2]).toString(16).padStart(2, '0');
-                
-                return `#${r}${g}${b}`;
-            }
+        <!-- Style Tekstu -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <select id="font-family" onchange="updateTextProperty('fontFamily', this.value)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+            <option value="Montserrat">Montserrat</option>
+            <option value="Impact">Impact</option>
+            <option value="Pacifico">Pacifico</option>
+            <option value="Roboto">Roboto</option>
+          </select>
+          <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1">
+            <span class="text-xs text-slate-400">Kolor:</span>
+            <input type="color" id="text-color" value="#ffffff" onchange="updateTextProperty('fill', this.value)" class="bg-transparent w-full h-8 cursor-pointer border-0">
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="toggleStyle('bold')" class="flex-1 bg-slate-800 hover:bg-slate-700 font-bold border border-slate-700 rounded-lg py-2 text-sm">B (Bold)</button>
+          <button onclick="toggleStyle('italic')" class="flex-1 bg-slate-800 hover:bg-slate-700 italic border border-slate-700 rounded-lg py-2 text-sm">I (Italic)</button>
+        </div>
+      </div>
+
+      <hr class="border-slate-800">
+
+      <!-- Grafika Section -->
+      <div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Wgraj Grafikę</h2>
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-[#d0fd38] rounded-xl p-4 cursor-pointer transition bg-slate-800/50">
+          <span class="text-sm text-slate-300">Kliknij, aby dodać obraz (PNG, JPG, SVG)</span>
+          <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="uploadImage(event)">
+        </label>
+      </div>
+
+      <hr class="border-slate-800">
+
+      <!-- Zarządzanie Warstwami & Akcje -->
+      <div class="flex-1 flex flex-col justify-end gap-3">
+        <button onclick="deleteSelected()" class="w-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 font-semibold py-2 rounded-lg text-sm transition">
+          Usuń zaznaczony element
+        </button>
+        <button onclick="exportDesign()" class="w-full accent-bg font-bold py-3 rounded-xl text-base shadow-lg hover:opacity-90 transition">
+          Pobierz Plik do Druku (SVG / PDF)
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Right: Mockup Preview (7 cols) -->
+    <section class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[500px]">
+      
+      <!-- Mockup Wrapper -->
+      <div class="relative w-[380px] h-[480px] bg-slate-800/40 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden border border-slate-800">
+        
+        <!-- T-Shirt Background SVG Silhouette -->
+        <svg id="tshirt-svg" class="absolute w-[340px] h-[440px] text-slate-700 transition-all duration-300 fill-current" viewBox="0 0 24 24">
+          <path d="M12 4.218c-1.07 1.07-2.6 1.782-4.25 1.782h-3.5l-2.25 4.5 3 1.5v9h14v-9l3-1.5-2.25-4.5h-3.5c-1.65 0-3.18-.712-4.25-1.782z"/>
+        </svg>
+
+        <!-- Label Przód / Tył -->
+        <span id="side-indicator" class="absolute top-4 left-4 bg-slate-900/80 border border-slate-700 text-xs px-3 py-1 rounded-full text-slate-300 uppercase tracking-widest font-semibold">
+          Widok: Przód
+        </span>
+
+        <!-- Canvas Print Area Overlay -->
+        <div class="absolute w-[200px] h-[280px] border-2 border-dashed border-[#d0fd38]/60 rounded flex items-center justify-center z-10 pointer-events-auto">
+          <canvas id="fabric-canvas" width="200" height="280"></canvas>
+        </div>
+
+      </div>
+
+      <p class="text-xs text-slate-500 mt-4">Wskazówka: Użyj uchwytów myszy, aby przesuwać, skalować i obracać elementy wewnątrz zielonej ramki zadruku.</p>
+    </section>
+
+  </main>
+
+  <!-- JS Logic -->
+  <script>
+    let canvas;
+    let currentSide = 'front';
+    const sideData = {
+      front: null,
+      back: null
+    };
+
+    // Inicjalizacja Fabric Canvas
+    window.onload = () => {
+      canvas = new fabric.Canvas('fabric-canvas', {
+        preserveObjectStacking: true
+      });
+
+      // Synchronizacja inputa tekstowego przy zaznaczeniu obiektu
+      canvas.on('selection:created', onObjectSelected);
+      canvas.on('selection:updated', onObjectSelected);
+      canvas.on('selection:cleared', () => {
+        document.getElementById('text-input').value = '';
+      });
+    };
+
+    function onObjectSelected(e) {
+      const activeObj = e.selected[0];
+      if (activeObj && activeObj.type === 'i-text') {
+        document.getElementById('text-input').value = activeObj.text;
+        document.getElementById('text-color').value = activeObj.fill;
+        document.getElementById('font-family').value = activeObj.fontFamily;
+      }
+    }
+
+    // 1. Dodawanie Tekstu
+    function addText() {
+      const input = document.getElementById('text-input');
+      const textVal = input.value.trim() || "Twój Tekst";
+      
+      const text = new fabric.IText(textVal, {
+        left: 20,
+        top: 20,
+        fontFamily: document.getElementById('font-family').value,
+        fill: document.getElementById('text-color').value,
+        fontSize: 24,
+        cornerColor: '#d0fd38',
+        cornerSize: 8,
+        transparentCorners: false
+      });
+
+      canvas.add(text);
+      canvas.setActiveObject(text);
+      canvas.renderAll();
+    }
+
+    // Aktualizacja właściwości tekstu w czasie rzeczywistym
+    function updateTextProperty(prop, value) {
+      const activeObj = canvas.getActiveObject();
+      if (activeObj && activeObj.type === 'i-text') {
+        activeObj.set(prop, value);
+        canvas.renderAll();
+      }
+    }
+
+    function toggleStyle(styleType) {
+      const activeObj = canvas.getActiveObject();
+      if (activeObj && activeObj.type === 'i-text') {
+        if (styleType === 'bold') {
+          activeObj.set('fontWeight', activeObj.fontWeight === 'bold' ? 'normal' : 'bold');
+        } else if (styleType === 'italic') {
+          activeObj.set('fontStyle', activeObj.fontStyle === 'italic' ? 'normal' : 'italic');
         }
-        
-        // ============================================
-        // INICJALIZACJA APLIKACJI
-        // ============================================
-        document.addEventListener('DOMContentLoaded', () => {
-            const designer = new TShirtDesigner();
-            
-            // Informacja w konsoli
-            console.log(`
-╔══════════════════════════════════════╗
-║   👕 T-SHIRT DESIGNER v1.0          ║
-║   Kreator nadruków na koszulki       ║
-╚══════════════════════════════════════╝
+        canvas.renderAll();
+      }
+    }
 
-Gotowy do użycia! Zacznij od:
-1. Dodania tekstu lub grafiki
-2. Edycji z użyciem panelu narzędzi
-3. Pobrania projektu w SVG lub PDF
+    // 2. Wgrywanie Grafiki
+    function uploadImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-Fabric.js: ✓
-Tailwind CSS: ✓
-jsPDF: ✓
-            `);
+      const reader = new FileReader();
+      reader.onload = function(f) {
+        fabric.Image.fromURL(f.target.result, function(img) {
+          // Automatyczne dopasowanie wielkości grafiki do pola zadruku
+          img.scaleToWidth(140);
+          img.set({
+            left: 30,
+            top: 30,
+            cornerColor: '#d0fd38',
+            cornerSize: 8,
+            transparentCorners: false
+          });
+          canvas.add(img);
+          canvas.setActiveObject(img);
+          canvas.renderAll();
         });
-    </script>
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Usuwanie zaznaczonego elementu
+    function deleteSelected() {
+      const activeObj = canvas.getActiveObject();
+      if (activeObj) {
+        canvas.remove(activeObj);
+        canvas.discardActiveObject();
+        canvas.renderAll();
+      }
+    }
+
+    // Przełączanie stron Przód / Tył
+    function switchSide(side) {
+      if (currentSide === side) return;
+
+      // Zapisujemy stan obecnej strony
+      sideData[currentSide] = canvas.toJSON();
+
+      currentSide = side;
+      document.getElementById('side-indicator').innerText = `Widok: ${side === 'front' ? 'Przód' : 'Tył'}`;
+
+      // Stylizacja przycisków
+      const btnFront = document.getElementById('btn-front');
+      const btnBack = document.getElementById('btn-back');
+      
+      if (side === 'front') {
+        btnFront.className = "px-4 py-2 rounded-lg font-semibold accent-bg transition-all";
+        btnBack.className = "px-4 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all";
+      } else {
+        btnBack.className = "px-4 py-2 rounded-lg font-semibold accent-bg transition-all";
+        btnFront.className = "px-4 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all";
+      }
+
+      // Wczytanie stanu nowej strony
+      canvas.clear();
+      if (sideData[side]) {
+        canvas.loadFromJSON(sideData[side], canvas.renderAll.bind(canvas));
+      } else {
+        canvas.renderAll();
+      }
+    }
+
+    // Eksport do pliku (SVG lub PDF zależnie od zawartości)
+    function exportDesign() {
+      const objects = canvas.getObjects();
+      if (objects.length === 0) {
+        alert("Pole zadruku jest puste!");
+        return;
+      }
+
+      const hasRasterImage = objects.some(obj => obj.type === 'image');
+
+      if (!hasRasterImage) {
+        // Eksport do czystego wektorowego SVG
+        const svgData = canvas.toSVG();
+        const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `nadruk_${currentSide}.svg`;
+        link.click();
+      } else {
+        // Eksport do PDF (wysoka jakość)
+        const imgData = canvas.toDataURL({ format: 'png', multiplier: 3 });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: [200, 280]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, 200, 280);
+        pdf.save(`nadruk_${currentSide}.pdf`);
+      }
+    }
+  </script>
 </body>
 </html>
