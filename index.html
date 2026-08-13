@@ -101,7 +101,7 @@
           <span>🖨️</span> Pobierz Plik do Druku (SVG / PDF)
         </button>
 
-        <button onclick="exportFullPreview()" class="w-full accent-bg font-bold py-3.5 rounded-xl text-base shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+        <button id="btn-preview" onclick="exportFullPreview()" class="w-full accent-bg font-bold py-3.5 rounded-xl text-base shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2">
           <span>📸</span> Pobierz Podgląd Wizualizacji (PNG)
         </button>
       </div>
@@ -116,11 +116,12 @@
         <!-- Warstwa koloru koszulki -->
         <div id="tshirt-color-bg" class="absolute w-[340px] h-[440px] rounded-xl tshirt-color-layer bg-slate-800"></div>
 
-        <!-- Wbudowany obrazek SVG (Brak błędów CORS!) -->
+        <!-- Realistyczne Zdjęcie Mockupu Koszulki -->
         <img id="tshirt-mockup-img" 
-             src="" 
-             alt="Mockup Koszulki" 
-             class="absolute w-[340px] h-[440px] object-contain pointer-events-none z-0 mix-blend-multiply opacity-90">
+             crossorigin="anonymous"
+             src="https://raw.githubusercontent.com/cjdowner/tshirt-designer/master/img/crew_front.png" 
+             alt="Realistyczny Mockup Koszulki" 
+             class="absolute w-[340px] h-[440px] object-contain pointer-events-none z-0 mix-blend-multiply opacity-95">
 
         <span id="side-indicator" class="absolute top-4 left-4 bg-slate-900/90 border border-slate-700 text-[10px] px-3 py-1 rounded-full text-slate-300 uppercase tracking-widest font-semibold z-20">
           Widok: Przód
@@ -132,7 +133,7 @@
 
       </div>
 
-      <p class="text-xs text-slate-500 mt-4 text-center">Naciśnij przycisk, aby natychmiast zapisać obrazek PNG wizualizacji.</p>
+      <p class="text-xs text-slate-500 mt-4 text-center">Pobierany plik zawiera pełne zdjęcie zagnieceń i cieniowania koszulki.</p>
     </section>
 
   </main>
@@ -142,17 +143,14 @@
     let currentSide = 'front';
     const sideData = { front: null, back: null };
 
-    // Wbudowane grafiki SVG w postaci Data-URI (Gwarancja braku błędów sieci i CORS)
-    const SVG_MOCKUPS = {
-      front: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 550" fill="none"><path d="M160 60 C 200 90, 300 90, 340 60 L460 130 L400 220 L350 180 L350 500 L150 500 L150 180 L100 220 L40 130 Z" fill="rgba(0,0,0,0.15)"/><path d="M160 55 C 200 85, 300 85, 340 55 L450 120 L390 210 L345 175 L345 490 L155 490 L155 175 L110 210 L50 120 Z" stroke="%23334155" stroke-width="6" fill="none"/><path d="M160 55 C 200 95, 300 95, 340 55 C 290 115, 210 115, 160 55 Z" fill="%230f172a" stroke="%23334155" stroke-width="4"/><path d="M125 105 L155 175" stroke="%23334155" stroke-width="4"/><path d="M375 105 L345 175" stroke="%23334155" stroke-width="4"/></svg>',
-      back: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 550" fill="none"><path d="M160 60 C 200 70, 300 70, 340 60 L460 130 L400 220 L350 180 L350 500 L150 500 L150 180 L100 220 L40 130 Z" fill="rgba(0,0,0,0.15)"/><path d="M160 55 C 200 65, 300 65, 340 55 L450 120 L390 210 L345 175 L345 490 L155 490 L155 175 L110 210 L50 120 Z" stroke="%23334155" stroke-width="6" fill="none"/><path d="M160 55 C 200 65, 300 65, 340 55 C 290 80, 210 80, 160 55 Z" fill="%230f172a" stroke="%23334155" stroke-width="4"/><path d="M125 105 L155 175" stroke="%23334155" stroke-width="4"/><path d="M375 105 L345 175" stroke="%23334155" stroke-width="4"/></svg>'
+    // Realistyczne zdjęcia koszulek z teksturami
+    const REAL_MOCKUPS = {
+      front: 'https://raw.githubusercontent.com/cjdowner/tshirt-designer/master/img/crew_front.png',
+      back: 'https://raw.githubusercontent.com/cjdowner/tshirt-designer/master/img/crew_back.png'
     };
 
     window.onload = () => {
       canvas = new fabric.Canvas('fabric-canvas', { preserveObjectStacking: true });
-
-      // Ustawienie domyślnego widoku koszulki
-      document.getElementById('tshirt-mockup-img').src = SVG_MOCKUPS.front;
 
       canvas.on('selection:created', onObjectSelected);
       canvas.on('selection:updated', onObjectSelected);
@@ -252,7 +250,7 @@
       sideData[currentSide] = canvas.toJSON();
       currentSide = side;
 
-      document.getElementById('tshirt-mockup-img').src = SVG_MOCKUPS[side];
+      document.getElementById('tshirt-mockup-img').src = REAL_MOCKUPS[side];
       document.getElementById('side-indicator').innerText = `Widok: ${side === 'front' ? 'Przód' : 'Tył'}`;
 
       const btnFront = document.getElementById('btn-front');
@@ -299,71 +297,112 @@
       }
     }
 
-    // BEZPIECZNE I BŁYSKAWICZNE GENEROWANIE PODGLĄDU
-    function exportFullPreview() {
-      // 1. Odznaczenie aktywnych obiektów na canvasie (ukrycie ramek edycji)
-      canvas.discardActiveObject();
-      canvas.renderAll();
+    // Pomocnicza funkcja do bezbłędnego ładowania zdjęć zewnętrznych
+    function fetchImageAsDataURL(url) {
+      return fetch(url)
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }));
+    }
 
-      const width = 760;
-      const height = 980;
-      
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = width;
-      tempCanvas.height = height;
-      const ctx = tempCanvas.getContext('2d');
+    // GENEROWANIE REALISTYCZNEJ WIZUALIZACJI ZE ZDJĘCIA
+    async function exportFullPreview() {
+      const btn = document.getElementById('btn-preview');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Generowanie...';
+      btn.disabled = true;
 
-      // Tło całej karty
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, width, height);
+      try {
+        canvas.discardActiveObject();
+        canvas.renderAll();
 
-      // Pobranie aktualnego koloru koszulki
-      const colorBg = document.getElementById('tshirt-color-bg');
-      const shirtColor = window.getComputedStyle(colorBg).backgroundColor || '#1e293b';
+        const width = 1000;
+        const height = 1200;
+        
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        const ctx = tempCanvas.getContext('2d');
 
-      const tshirtX = 40;
-      const tshirtY = 60;
-      const tshirtW = 680;
-      const tshirtH = 860;
+        // 1. Tło ciemne eleganckie
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, width, height);
 
-      // Rysowanie tła t-shirta
-      ctx.fillStyle = shirtColor;
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(tshirtX, tshirtY, tshirtW, tshirtH, 24);
-        ctx.fill();
-      } else {
-        ctx.fillRect(tshirtX, tshirtY, tshirtW, tshirtH);
-      }
+        // 2. Tło dla koszulki
+        const colorBg = document.getElementById('tshirt-color-bg');
+        const shirtColor = window.getComputedStyle(colorBg).backgroundColor || '#1e293b';
 
-      // Rysowanie projektu z Fabric.js na środku koszulki
-      const printDataUrl = canvas.toDataURL({ format: 'png', multiplier: 2 });
-      const printImg = new Image();
+        const tshirtX = 100;
+        const tshirtY = 120;
+        const tshirtW = 800;
+        const tshirtH = 960;
 
-      printImg.onload = function() {
-        const scaleX = width / 380;
-        const scaleY = height / 490;
+        ctx.fillStyle = shirtColor;
+        if (ctx.roundRect) {
+          ctx.beginPath();
+          ctx.roundRect(tshirtX, tshirtY, tshirtW, tshirtH, 32);
+          ctx.fill();
+        } else {
+          ctx.fillRect(tshirtX, tshirtY, tshirtW, tshirtH);
+        }
 
-        const printX = 100 * scaleX;
-        const printY = 105 * scaleY;
-        const printW = 180 * scaleX;
-        const printH = 260 * scaleY;
+        // 3. Ładowanie i nakładanie ZDJĘCIA MOCKUPU (z cieniami i zagnieceniami)
+        const mockupUrl = REAL_MOCKUPS[currentSide];
+        const dataUrl = await fetchImageAsDataURL(mockupUrl);
+
+        const mockupImg = new Image();
+        await new Promise((resolve) => {
+          mockupImg.onload = resolve;
+          mockupImg.src = dataUrl;
+        });
+
+        // Nałożenie zdjęcia z mieszaniem multiply dla realistycznych cieni
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(mockupImg, tshirtX, tshirtY, tshirtW, tshirtH);
+        ctx.globalCompositeOperation = 'source-over';
+
+        // 4. Nałożenie projektu użytkownika z Canvasa
+        const printDataUrl = canvas.toDataURL({ format: 'png', multiplier: 3 });
+        const printImg = new Image();
+
+        await new Promise((resolve) => {
+          printImg.onload = resolve;
+          printImg.src = printDataUrl;
+        });
+
+        // Wszycie nadruku dokładnie w pole zadruku na koszulce
+        const printX = 310;
+        const printY = 325;
+        const printW = 380;
+        const printH = 510;
 
         ctx.drawImage(printImg, printX, printY, printW, printH);
 
-        // Dodanie nagłówka na wygenerowanym zdjęciu
+        // 5. Znak wodny / Nagłówek
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Montserrat, sans-serif';
-        ctx.fillText(`WIZUALIZACJA PROJEKTU - ${currentSide.toUpperCase()}`, 60, 100);
+        ctx.font = 'bold 28px Montserrat, sans-serif';
+        ctx.fillText(`WIZUALIZACJA PROJEKTU - ${currentSide.toUpperCase()}`, 70, 75);
 
-        // Natychmiastowe pobranie gotowego pliku PNG
+        ctx.fillStyle = '#d0fd38';
+        ctx.font = 'bold 16px Montserrat, sans-serif';
+        ctx.fillText(`STUDIO MOCKUP • REAL PREVIEW`, 70, 100);
+
+        // 6. Pobranie gotowego pliku PNG
         const link = document.createElement('a');
-        link.download = `wizualizacja_koszulka_${currentSide}.png`;
+        link.download = `wizualizacja_realna_${currentSide}.png`;
         link.href = tempCanvas.toDataURL('image/png');
         link.click();
-      };
 
-      printImg.src = printDataUrl;
+      } catch (err) {
+        alert("Błąd podczas generowania podglądu: " + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
     }
   </script>
 </body>
