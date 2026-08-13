@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kreator Nadruków - Studio</title>
+  <title>Kreator Nadruków - Realistyczny Studio Mockup</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Fabric.js v5 -->
@@ -15,19 +15,23 @@
   
   <style>
     body { background-color: #0f172a; color: #f8fafc; font-family: 'Montserrat', sans-serif; }
-    .accent-color { color: #d0fd38; }
     .accent-bg { background-color: #d0fd38; color: #0f172a; }
-    .accent-border { border-color: #d0fd38; }
+    .accent-color { color: #d0fd38; }
+    
+    /* Płynna zmiana koloru tła pod teksturą koszulki */
+    .tshirt-color-layer {
+      transition: background-color 0.3s ease-in-out;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
   <!-- Header -->
-  <header class="border-b border-slate-800 p-4 bg-slate-900/50 backdrop-blur flex justify-between items-center">
+  <header class="border-b border-slate-800 p-4 bg-slate-900/80 backdrop-blur flex justify-between items-center sticky top-0 z-50">
     <h1 class="text-xl font-bold tracking-wider uppercase">Kreator <span class="accent-color">Nadruków</span></h1>
     <div class="flex gap-2">
-      <button id="btn-front" onclick="switchSide('front')" class="px-4 py-2 rounded-lg font-semibold accent-bg transition-all">Przód</button>
-      <button id="btn-back" onclick="switchSide('back')" class="px-4 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all">Tył</button>
+      <button id="btn-front" onclick="switchSide('front')" class="px-5 py-2 rounded-lg font-semibold accent-bg transition-all shadow-lg">Przód</button>
+      <button id="btn-back" onclick="switchSide('back')" class="px-5 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all">Tył</button>
     </div>
   </header>
 
@@ -37,17 +41,30 @@
     <!-- Left: Tool Panel (5 cols) -->
     <section class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6 shadow-xl">
       
-      <!-- Tekst Section -->
+      <!-- Kolor Koszulki -->
       <div>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Dodaj & Edytuj Tekst</h2>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Kolor Koszulki</h2>
+        <div class="flex gap-3">
+          <button onclick="changeTshirtColor('#1e293b')" class="w-9 h-9 rounded-full bg-slate-800 border-2 border-slate-500 hover:scale-110 transition shadow-md" title="Czarny"></button>
+          <button onclick="changeTshirtColor('#f8fafc')" class="w-9 h-9 rounded-full bg-slate-100 border-2 border-slate-400 hover:scale-110 transition shadow-md" title="Biały"></button>
+          <button onclick="changeTshirtColor('#dc2626')" class="w-9 h-9 rounded-full bg-red-600 border-2 border-red-400 hover:scale-110 transition shadow-md" title="Czerwony"></button>
+          <button onclick="changeTshirtColor('#2563eb')" class="w-9 h-9 rounded-full bg-blue-600 border-2 border-blue-400 hover:scale-110 transition shadow-md" title="Niebieski"></button>
+          <button onclick="changeTshirtColor('#16a34a')" class="w-9 h-9 rounded-full bg-green-600 border-2 border-green-400 hover:scale-110 transition shadow-md" title="Zielony"></button>
+        </div>
+      </div>
+
+      <hr class="border-slate-800">
+
+      <!-- Edycja Tekstu -->
+      <div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Dodaj & Edytuj Tekst</h2>
         <div class="flex gap-2 mb-3">
           <input type="text" id="text-input" placeholder="Wpisz swój tekst..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d0fd38]">
           <button onclick="addText()" class="accent-bg font-bold px-4 py-2 rounded-lg text-sm hover:opacity-90 transition">+ Dodaj</button>
         </div>
         
-        <!-- Style Tekstu -->
         <div class="grid grid-cols-2 gap-2 mb-3">
-          <select id="font-family" onchange="updateTextProperty('fontFamily', this.value)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+          <select id="font-family" onchange="updateTextProperty('fontFamily', this.value)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
             <option value="Montserrat">Montserrat</option>
             <option value="Impact">Impact</option>
             <option value="Pacifico">Pacifico</option>
@@ -67,18 +84,18 @@
 
       <hr class="border-slate-800">
 
-      <!-- Grafika Section -->
+      <!-- Wgrywanie Obrazu -->
       <div>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Wgraj Grafikę</h2>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">3. Wgraj Grafikę</h2>
         <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-[#d0fd38] rounded-xl p-4 cursor-pointer transition bg-slate-800/50">
-          <span class="text-sm text-slate-300">Kliknij, aby dodać obraz (PNG, JPG, SVG)</span>
+          <span class="text-sm text-slate-300">Dodaj plik PNG, JPG lub SVG</span>
           <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="uploadImage(event)">
         </label>
       </div>
 
       <hr class="border-slate-800">
 
-      <!-- Zarządzanie Warstwami & Akcje -->
+      <!-- Akcje -->
       <div class="flex-1 flex flex-col justify-end gap-3">
         <button onclick="deleteSelected()" class="w-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 font-semibold py-2 rounded-lg text-sm transition">
           Usuń zaznaczony element
@@ -90,30 +107,34 @@
 
     </section>
 
-    <!-- Right: Mockup Preview (7 cols) -->
-    <section class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[500px]">
+    <!-- Right: Realistic Mockup Preview (7 cols) -->
+    <section class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[550px]">
       
-      <!-- Mockup Wrapper -->
-      <div class="relative w-[380px] h-[480px] bg-slate-800/40 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden border border-slate-800">
+      <!-- Container Mockupu -->
+      <div class="relative w-[380px] h-[490px] bg-slate-950/60 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden border border-slate-800 p-4">
         
-        <!-- T-Shirt Background SVG Silhouette -->
-        <svg id="tshirt-svg" class="absolute w-[340px] h-[440px] text-slate-700 transition-all duration-300 fill-current" viewBox="0 0 24 24">
-          <path d="M12 4.218c-1.07 1.07-2.6 1.782-4.25 1.782h-3.5l-2.25 4.5 3 1.5v9h14v-9l3-1.5-2.25-4.5h-3.5c-1.65 0-3.18-.712-4.25-1.782z"/>
-        </svg>
+        <!-- Warstwa tła z kolorem koszulki -->
+        <div id="tshirt-color-bg" class="absolute w-[340px] h-[440px] rounded-xl tshirt-color-layer bg-slate-800"></div>
 
-        <!-- Label Przód / Tył -->
-        <span id="side-indicator" class="absolute top-4 left-4 bg-slate-900/80 border border-slate-700 text-xs px-3 py-1 rounded-full text-slate-300 uppercase tracking-widest font-semibold">
+        <!-- Realistyczny plik PNG z teksturą bawełny, szwami i cieniami (Multiply) -->
+        <img id="tshirt-mockup-img" 
+             src="https://raw.githubusercontent.com/cjdowner/tshirt-designer/master/img/crew_front.png" 
+             alt="Realistyczny Mockup Koszulki" 
+             class="absolute w-[340px] h-[440px] object-contain pointer-events-none z-0 mix-blend-multiply opacity-95">
+
+        <!-- Wskaźnik Przód / Tył -->
+        <span id="side-indicator" class="absolute top-4 left-4 bg-slate-900/90 border border-slate-700 text-[10px] px-3 py-1 rounded-full text-slate-300 uppercase tracking-widest font-semibold z-20">
           Widok: Przód
         </span>
 
-        <!-- Canvas Print Area Overlay -->
-        <div class="absolute w-[200px] h-[280px] border-2 border-dashed border-[#d0fd38]/60 rounded flex items-center justify-center z-10 pointer-events-auto">
-          <canvas id="fabric-canvas" width="200" height="280"></canvas>
+        <!-- Pole Zadruku z płótnem Fabric.js (Canvas) -->
+        <div class="absolute top-[105px] w-[180px] h-[260px] border-2 border-dashed border-[#d0fd38]/60 rounded flex items-center justify-center z-10 pointer-events-auto">
+          <canvas id="fabric-canvas" width="180" height="260"></canvas>
         </div>
 
       </div>
 
-      <p class="text-xs text-slate-500 mt-4">Wskazówka: Użyj uchwytów myszy, aby przesuwać, skalować i obracać elementy wewnątrz zielonej ramki zadruku.</p>
+      <p class="text-xs text-slate-500 mt-4">Wskazówka: Ramka wskazuje obszar bezpieczny dla nadruku DTF/Sito.</p>
     </section>
 
   </main>
@@ -122,18 +143,17 @@
   <script>
     let canvas;
     let currentSide = 'front';
-    const sideData = {
-      front: null,
-      back: null
+    const sideData = { front: null, back: null };
+
+    // Adresy URL do czystych, przezroczystych mockupów z teksturą materiału
+    const MOCKUPS = {
+      front: 'https://raw.githubusercontent.com/cjdowner/tshirt-designer/master/img/crew_front.png',
+      back: 'https://raw.githubusercontent.com/cjdowner/tshirt-designer/master/img/crew_back.png'
     };
 
-    // Inicjalizacja Fabric Canvas
     window.onload = () => {
-      canvas = new fabric.Canvas('fabric-canvas', {
-        preserveObjectStacking: true
-      });
+      canvas = new fabric.Canvas('fabric-canvas', { preserveObjectStacking: true });
 
-      // Synchronizacja inputa tekstowego przy zaznaczeniu obiektu
       canvas.on('selection:created', onObjectSelected);
       canvas.on('selection:updated', onObjectSelected);
       canvas.on('selection:cleared', () => {
@@ -150,10 +170,15 @@
       }
     }
 
-    // 1. Dodawanie Tekstu
+    // Zmiana koloru koszulki pod teksturą
+    function changeTshirtColor(hexColor) {
+      document.getElementById('tshirt-color-bg').style.backgroundColor = hexColor;
+    }
+
+    // Dodawanie Tekstu
     function addText() {
       const input = document.getElementById('text-input');
-      const textVal = input.value.trim() || "Twój Tekst";
+      const textVal = input.value.trim() || "Napis";
       
       const text = new fabric.IText(textVal, {
         left: 20,
@@ -171,7 +196,6 @@
       canvas.renderAll();
     }
 
-    // Aktualizacja właściwości tekstu w czasie rzeczywistym
     function updateTextProperty(prop, value) {
       const activeObj = canvas.getActiveObject();
       if (activeObj && activeObj.type === 'i-text') {
@@ -192,7 +216,7 @@
       }
     }
 
-    // 2. Wgrywanie Grafiki
+    // Wgrywanie Grafiki
     function uploadImage(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -200,11 +224,10 @@
       const reader = new FileReader();
       reader.onload = function(f) {
         fabric.Image.fromURL(f.target.result, function(img) {
-          // Automatyczne dopasowanie wielkości grafiki do pola zadruku
-          img.scaleToWidth(140);
+          img.scaleToWidth(130);
           img.set({
-            left: 30,
-            top: 30,
+            left: 25,
+            top: 25,
             cornerColor: '#d0fd38',
             cornerSize: 8,
             transparentCorners: false
@@ -217,7 +240,6 @@
       reader.readAsDataURL(file);
     }
 
-    // Usuwanie zaznaczonego elementu
     function deleteSelected() {
       const activeObj = canvas.getActiveObject();
       if (activeObj) {
@@ -227,29 +249,30 @@
       }
     }
 
-    // Przełączanie stron Przód / Tył
+    // Przełączanie stron (Przód / Tył)
     function switchSide(side) {
       if (currentSide === side) return;
 
-      // Zapisujemy stan obecnej strony
+      // Zapisujemy stan strony
       sideData[currentSide] = canvas.toJSON();
-
       currentSide = side;
+
+      // Zmiana obrazu mockupu na właściwą stronę
+      document.getElementById('tshirt-mockup-img').src = MOCKUPS[side];
       document.getElementById('side-indicator').innerText = `Widok: ${side === 'front' ? 'Przód' : 'Tył'}`;
 
-      // Stylizacja przycisków
       const btnFront = document.getElementById('btn-front');
       const btnBack = document.getElementById('btn-back');
       
       if (side === 'front') {
-        btnFront.className = "px-4 py-2 rounded-lg font-semibold accent-bg transition-all";
-        btnBack.className = "px-4 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all";
+        btnFront.className = "px-5 py-2 rounded-lg font-semibold accent-bg transition-all shadow-lg";
+        btnBack.className = "px-5 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all";
       } else {
-        btnBack.className = "px-4 py-2 rounded-lg font-semibold accent-bg transition-all";
-        btnFront.className = "px-4 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all";
+        btnBack.className = "px-5 py-2 rounded-lg font-semibold accent-bg transition-all shadow-lg";
+        btnFront.className = "px-5 py-2 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-all";
       }
 
-      // Wczytanie stanu nowej strony
+      // Odświeżenie płótna dla nowej strony
       canvas.clear();
       if (sideData[side]) {
         canvas.loadFromJSON(sideData[side], canvas.renderAll.bind(canvas));
@@ -258,7 +281,7 @@
       }
     }
 
-    // Eksport do pliku (SVG lub PDF zależnie od zawartości)
+    // Eksportowanie nadruku
     function exportDesign() {
       const objects = canvas.getObjects();
       if (objects.length === 0) {
@@ -269,7 +292,6 @@
       const hasRasterImage = objects.some(obj => obj.type === 'image');
 
       if (!hasRasterImage) {
-        // Eksport do czystego wektorowego SVG
         const svgData = canvas.toSVG();
         const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
         const link = document.createElement("a");
@@ -277,15 +299,10 @@
         link.download = `nadruk_${currentSide}.svg`;
         link.click();
       } else {
-        // Eksport do PDF (wysoka jakość)
         const imgData = canvas.toDataURL({ format: 'png', multiplier: 3 });
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: [200, 280]
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, 200, 280);
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [180, 260] });
+        pdf.addImage(imgData, 'PNG', 0, 0, 180, 260);
         pdf.save(`nadruk_${currentSide}.pdf`);
       }
     }
