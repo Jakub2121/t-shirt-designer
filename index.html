@@ -35,11 +35,11 @@
   <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 lg:p-8 max-w-7xl mx-auto w-full">
     
     <!-- Left: Tool Panel -->
-    <section class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6 shadow-xl">
+    <section class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-5 shadow-xl">
       
       <!-- 1. Kolor Koszulki -->
       <div>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Kolor Koszulki</h2>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">1. Kolor Koszulki</h2>
         <div class="flex gap-3">
           <button onclick="changeTshirtColor('#1e293b')" class="w-9 h-9 rounded-full bg-slate-800 border-2 border-slate-500 hover:scale-110 transition shadow-md" title="Czarny"></button>
           <button onclick="changeTshirtColor('#f8fafc')" class="w-9 h-9 rounded-full bg-slate-100 border-2 border-slate-400 hover:scale-110 transition shadow-md" title="Biały"></button>
@@ -51,9 +51,9 @@
 
       <hr class="border-slate-800">
 
-      <!-- 2. Edycja Tekstu -->
+      <!-- 2. Edycja Tekstu & Podgląd Wymiarów -->
       <div>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Dodaj & Edytuj Tekst</h2>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">2. Dodaj & Edytuj Tekst</h2>
         <div class="flex gap-2 mb-3">
           <input type="text" id="text-input" placeholder="Wpisz swój tekst..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d0fd38]">
           <button onclick="addText()" class="accent-bg font-bold px-4 py-2 rounded-lg text-sm hover:opacity-90 transition">+ Dodaj</button>
@@ -73,17 +73,23 @@
         </div>
 
         <div class="flex gap-2">
-          <button onclick="toggleStyle('bold')" class="flex-1 bg-slate-800 hover:bg-slate-700 font-bold border border-slate-700 rounded-lg py-2 text-sm">B (Bold)</button>
-          <button onclick="toggleStyle('italic')" class="flex-1 bg-slate-800 hover:bg-slate-700 italic border border-slate-700 rounded-lg py-2 text-sm">I (Italic)</button>
+          <button onclick="toggleStyle('bold')" class="flex-1 bg-slate-800 hover:bg-slate-700 font-bold border border-slate-700 rounded-lg py-1.5 text-sm">B (Bold)</button>
+          <button onclick="toggleStyle('italic')" class="flex-1 bg-slate-800 hover:bg-slate-700 italic border border-slate-700 rounded-lg py-1.5 text-sm">I (Italic)</button>
         </div>
+      </div>
+
+      <!-- BOX REALNYCH WYMIARÓW ZAZNACZONEGO ELEMENTU -->
+      <div id="dimensions-badge" class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex justify-between items-center">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rozmiar elementu:</span>
+        <span id="elem-size" class="font-bold text-[#d0fd38] text-sm">Zaznacz obiekt</span>
       </div>
 
       <hr class="border-slate-800">
 
       <!-- 3. Wgrywanie Obrazu -->
       <div>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">3. Wgraj Grafikę</h2>
-        <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-[#d0fd38] rounded-xl p-4 cursor-pointer transition bg-slate-800/50">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">3. Wgraj Grafikę</h2>
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-[#d0fd38] rounded-xl p-3 cursor-pointer transition bg-slate-800/50">
           <span class="text-sm text-slate-300">Dodaj plik PNG, JPG lub SVG</span>
           <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="uploadImage(event)">
         </label>
@@ -92,16 +98,22 @@
       <hr class="border-slate-800">
 
       <!-- 4. Akcje & Pobieranie -->
-      <div class="flex-1 flex flex-col justify-end gap-3">
+      <div class="flex-1 flex flex-col justify-end gap-2.5">
         <button onclick="deleteSelected()" class="w-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 font-semibold py-2 rounded-lg text-sm transition">
           Usuń zaznaczony element
         </button>
-        
-        <button onclick="exportDesign()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl text-sm border border-slate-700 transition flex items-center justify-center gap-2">
-          <span>🖨️</span> Pobierz Plik do Druku (SVG / PDF)
-        </button>
 
-        <button id="btn-preview" onclick="exportFullPreview()" class="w-full accent-bg font-bold py-3.5 rounded-xl text-base shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+        <!-- Wybór formatu druku -->
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="exportPrintDesign('svg')" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs border border-slate-700 transition">
+            🖨️ Druk SVG (Wektor 1:1)
+          </button>
+          <button onclick="exportPrintDesign('pdf')" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs border border-slate-700 transition">
+            📄 Druk PDF (300 DPI)
+          </button>
+        </div>
+
+        <button id="btn-preview" onclick="exportFullPreview()" class="w-full accent-bg font-bold py-3.5 rounded-xl text-sm shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2">
           <span>📸</span> Pobierz Podgląd Wizualizacji (PNG)
         </button>
       </div>
@@ -118,22 +130,25 @@
 
         <!-- Realistyczne Zdjęcie Mockupu Koszulki -->
         <img id="tshirt-mockup-img" 
-             crossorigin="anonymous"
              src="img/front.png" 
-             alt="Realistyczny Mockup Koszulki" 
+             alt="Mockup Koszulki" 
              class="absolute w-[340px] h-[440px] object-contain pointer-events-none z-0 mix-blend-multiply opacity-95">
 
         <span id="side-indicator" class="absolute top-4 left-4 bg-slate-900/90 border border-slate-700 text-[10px] px-3 py-1 rounded-full text-slate-300 uppercase tracking-widest font-semibold z-20">
           Widok: Przód
         </span>
 
+        <!-- Obszar zadruku na mockupie -->
         <div class="absolute top-[105px] w-[180px] h-[260px] border-2 border-dashed border-[#d0fd38]/60 rounded flex items-center justify-center z-10 pointer-events-auto">
           <canvas id="fabric-canvas" width="180" height="260"></canvas>
         </div>
 
       </div>
 
-      <p class="text-xs text-slate-500 mt-4 text-center">Pobierany plik zawiera pełne zdjęcie zagnieceń i cieniowania koszulki.</p>
+      <div class="flex items-center gap-3 mt-4 text-xs text-slate-400">
+        <span class="inline-block w-2 h-2 rounded-full bg-[#d0fd38]"></span>
+        <span>Pole zadruku w rzeczywistości wynosi: <strong>210 mm × 300 mm</strong></span>
+      </div>
     </section>
 
   </main>
@@ -143,28 +158,48 @@
     let currentSide = 'front';
     const sideData = { front: null, back: null };
 
-    // Realistyczne zdjęcia koszulek z teksturami
+    // PARAMETRY DRUKU (Rzeczywiste wymiary klatki zadruku w milimetrach)
+    const PRINT_WIDTH_MM = 210;  // 210 mm (szerokość)
+    const PRINT_HEIGHT_MM = 300; // 300 mm (wysokość)
+
+    // Lokalne ścieżki do plików w Twoim repozytorium GitHub
     const REAL_MOCKUPS = {
-      front: 'front.png',
-      back: 'back.png'
+      front: 'img/front.png',
+      back: 'img/back.png'
     };
 
     window.onload = () => {
       canvas = new fabric.Canvas('fabric-canvas', { preserveObjectStacking: true });
 
-      canvas.on('selection:created', onObjectSelected);
-      canvas.on('selection:updated', onObjectSelected);
-      canvas.on('selection:cleared', () => {
-        document.getElementById('text-input').value = '';
-      });
+      // Eventy do przeliczania wymiarów w mm na żywo
+      canvas.on('selection:created', updateDimensionsDisplay);
+      canvas.on('selection:updated', updateDimensionsDisplay);
+      canvas.on('selection:cleared', updateDimensionsDisplay);
+      canvas.on('object:scaling', updateDimensionsDisplay);
+      canvas.on('object:modified', updateDimensionsDisplay);
     };
 
-    function onObjectSelected(e) {
-      const activeObj = e.selected[0];
-      if (activeObj && activeObj.type === 'i-text') {
-        document.getElementById('text-input').value = activeObj.text;
-        document.getElementById('text-color').value = activeObj.fill;
-        document.getElementById('font-family').value = activeObj.fontFamily;
+    // PRZELICZANIE I WYŚWIETLANIE WYMIARÓW W MM
+    function updateDimensionsDisplay() {
+      const activeObj = canvas.getActiveObject();
+      const elemSizeEl = document.getElementById('elem-size');
+
+      if (activeObj) {
+        // Aktualizacja pól tekstu
+        if (activeObj.type === 'i-text') {
+          document.getElementById('text-input').value = activeObj.text;
+          document.getElementById('text-color').value = activeObj.fill;
+          document.getElementById('font-family').value = activeObj.fontFamily;
+        }
+
+        // Przeliczenie pikseli ekranu na rzeczywiste milimetry
+        const realWidthMm = (activeObj.getScaledWidth() * (PRINT_WIDTH_MM / canvas.width)).toFixed(1);
+        const realHeightMm = (activeObj.getScaledHeight() * (PRINT_HEIGHT_MM / canvas.height)).toFixed(1);
+
+        elemSizeEl.innerText = `${realWidthMm} mm × ${realHeightMm} mm`;
+      } else {
+        document.getElementById('text-input').value = '';
+        elemSizeEl.innerText = 'Zaznacz obiekt';
       }
     }
 
@@ -190,6 +225,7 @@
       canvas.add(text);
       canvas.setActiveObject(text);
       canvas.renderAll();
+      updateDimensionsDisplay();
     }
 
     function updateTextProperty(prop, value) {
@@ -197,6 +233,7 @@
       if (activeObj && activeObj.type === 'i-text') {
         activeObj.set(prop, value);
         canvas.renderAll();
+        updateDimensionsDisplay();
       }
     }
 
@@ -230,6 +267,7 @@
           canvas.add(img);
           canvas.setActiveObject(img);
           canvas.renderAll();
+          updateDimensionsDisplay();
         });
       };
       reader.readAsDataURL(file);
@@ -241,6 +279,7 @@
         canvas.remove(activeObj);
         canvas.discardActiveObject();
         canvas.renderAll();
+        updateDimensionsDisplay();
       }
     }
 
@@ -272,32 +311,58 @@
       }
     }
 
-    function exportDesign() {
+    // POBIERANIE CZYSTEGO PLIKU DO DRUKU (SVG WEKTOROWY LUB PDF 300 DPI)
+    function exportPrintDesign(format) {
       const objects = canvas.getObjects();
       if (objects.length === 0) {
-        alert("Pole zadruku jest puste!");
+        alert("Pole zadruku jest puste! Dodaj tekst lub grafikę.");
         return;
       }
 
-      const hasRasterImage = objects.some(obj => obj.type === 'image');
+      // Odznaczenie ramek edycji przed eksportem
+      canvas.discardActiveObject();
+      canvas.renderAll();
 
-      if (!hasRasterImage) {
-        const svgData = canvas.toSVG();
+      if (format === 'svg') {
+        // Generujemy SVG
+        let svgData = canvas.toSVG();
+        
+        // Zastępujemy wymiary pikselowe oryginalną wielkością fizyczną w milimetrach!
+        svgData = svgData.replace(
+          /width="(\d+)" height="(\d+)"/,
+          `width="${PRINT_WIDTH_MM}mm" height="${PRINT_HEIGHT_MM}mm"`
+        );
+
         const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `nadruk_${currentSide}.svg`;
+        link.download = `druk_gotowy_${currentSide}_${PRINT_WIDTH_MM}x${PRINT_HEIGHT_MM}mm.svg`;
         link.click();
-      } else {
-        const imgData = canvas.toDataURL({ format: 'png', multiplier: 3 });
+
+      } else if (format === 'pdf') {
+        // Dla formatu PDF generujemy Ultra-High Resolution (300 DPI)
+        // 300 DPI = ~11.81 piksela na 1 mm. Dla 210mm dajemy rozdzielczość ~2480px.
+        const printMultiplier = 2480 / canvas.width; 
+
+        const highResImgData = canvas.toDataURL({
+          format: 'png',
+          multiplier: printMultiplier
+        });
+
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [180, 260] });
-        pdf.addImage(imgData, 'PNG', 0, 0, 180, 260);
-        pdf.save(`nadruk_${currentSide}.pdf`);
+        // Tworzymy dokument PDF dokładnie o wymiarach w mm bez tła i bez mockupu!
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: [PRINT_WIDTH_MM, PRINT_HEIGHT_MM]
+        });
+
+        pdf.addImage(highResImgData, 'PNG', 0, 0, PRINT_WIDTH_MM, PRINT_HEIGHT_MM);
+        pdf.save(`druk_gotowy_${currentSide}_300DPI_${PRINT_WIDTH_MM}x${PRINT_HEIGHT_MM}mm.pdf`);
       }
     }
 
-    // Pomocnicza funkcja do bezbłędnego ładowania zdjęć zewnętrznych
+    // Pomocnicza funkcja do bezbłędnego ładowania zdjęć lokalnych
     function fetchImageAsDataURL(url) {
       return fetch(url)
         .then(response => response.blob())
@@ -309,7 +374,7 @@
         }));
     }
 
-    // GENEROWANIE REALISTYCZNEJ WIZUALIZACJI ZE ZDJĘCIA
+    // GENEROWANIE PODGLĄDU WIZUALIZACJI Z MOCKUPEM
     async function exportFullPreview() {
       const btn = document.getElementById('btn-preview');
       const originalText = btn.innerHTML;
@@ -328,11 +393,11 @@
         tempCanvas.height = height;
         const ctx = tempCanvas.getContext('2d');
 
-        // 1. Tło ciemne eleganckie
+        // Tło podglądu
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, width, height);
 
-        // 2. Tło dla koszulki
+        // Kolor koszulki
         const colorBg = document.getElementById('tshirt-color-bg');
         const shirtColor = window.getComputedStyle(colorBg).backgroundColor || '#1e293b';
 
@@ -350,7 +415,7 @@
           ctx.fillRect(tshirtX, tshirtY, tshirtW, tshirtH);
         }
 
-        // 3. Ładowanie i nakładanie ZDJĘCIA MOCKUPU (z cieniami i zagnieceniami)
+        // Zdjęcie koszulki
         const mockupUrl = REAL_MOCKUPS[currentSide];
         const dataUrl = await fetchImageAsDataURL(mockupUrl);
 
@@ -360,12 +425,11 @@
           mockupImg.src = dataUrl;
         });
 
-        // Nałożenie zdjęcia z mieszaniem multiply dla realistycznych cieni
         ctx.globalCompositeOperation = 'multiply';
         ctx.drawImage(mockupImg, tshirtX, tshirtY, tshirtW, tshirtH);
         ctx.globalCompositeOperation = 'source-over';
 
-        // 4. Nałożenie projektu użytkownika z Canvasa
+        // Projekt użytkownika
         const printDataUrl = canvas.toDataURL({ format: 'png', multiplier: 3 });
         const printImg = new Image();
 
@@ -374,7 +438,6 @@
           printImg.src = printDataUrl;
         });
 
-        // Wszycie nadruku dokładnie w pole zadruku na koszulce
         const printX = 310;
         const printY = 325;
         const printW = 380;
@@ -382,7 +445,7 @@
 
         ctx.drawImage(printImg, printX, printY, printW, printH);
 
-        // 5. Znak wodny / Nagłówek
+        // Opis na podglądzie
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 28px Montserrat, sans-serif';
         ctx.fillText(`WIZUALIZACJA PROJEKTU - ${currentSide.toUpperCase()}`, 70, 75);
@@ -391,9 +454,8 @@
         ctx.font = 'bold 16px Montserrat, sans-serif';
         ctx.fillText(`STUDIO MOCKUP • REAL PREVIEW`, 70, 100);
 
-        // 6. Pobranie gotowego pliku PNG
         const link = document.createElement('a');
-        link.download = `wizualizacja_realna_${currentSide}.png`;
+        link.download = `wizualizacja_koszulki_${currentSide}.png`;
         link.href = tempCanvas.toDataURL('image/png');
         link.click();
 
